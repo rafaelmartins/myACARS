@@ -15,8 +15,6 @@ from flask_basicauth import BasicAuth as BaseBasicAuth
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from flask_sqlalchemy import SQLAlchemy
-from logging import Formatter, DEBUG
-from logging.handlers import RotatingFileHandler
 
 re_log = re.compile(r'(.)(\[[0-9]{2}:[0-9]{2}:[0-9]{2}\])')
 
@@ -46,12 +44,6 @@ app.config.update(
 )
 
 app.config.from_envvar('MYACARS_CONFIG', True)
-
-log_handler = RotatingFileHandler('myacars.log', maxBytes=100000,
-                                  backupCount=3)
-log_handler.setLevel(DEBUG)
-log_handler.setFormatter(Formatter(DEBUG_LOG_FORMAT))
-app.logger.addHandler(log_handler)
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -277,19 +269,29 @@ def smartcars_api():
     elif action == 'getpilotcenterdata':
         if request.args.get('dbid') != '1':
             return 'AUTH_FAILED'
+        result = db.session.query(
+            db.func.count(Flight.id).label('total_flights'),
+            db.func.sum(Flight.landing_rate).label('total_landing_rate'),
+            db.func.sum(Flight.duration).label('total_duration'),
+        ).filter(
+            Flight.landing_rate.isnot(None),
+            Flight.log.isnot(None),
+        ).first()
+        total_hours = result.total_duration // 60
+        total_minutes = result.total_duration % 60
         return build_response(
             ',',
-            '00:00:00',
-            '0',
-            '-100',
-            '0',
+            '%02d:%02d:00' % (total_hours, total_minutes),
+            result.total_flights,
+            int(result.total_landing_rate / result.total_flights),
+            result.total_flights,
         )
 
     elif action == 'getairports':
         airports = []
         qs = Airport.query.all()
         if qs:
-            for apt in Airport.query.all():
+            for apt in qs:
                 airports.append(
                     build_response(
                         '|',
@@ -331,9 +333,10 @@ def smartcars_api():
 
     elif action == 'getbidflights':
         flights = []
-        qs = Flight.query.all()
+        qs = Flight.query.filter(Flight.landing_rate.is_(None),
+                                 Flight.log.is_(None)).all()
         if qs:
-            for flt in Flight.query.all():
+            for flt in qs:
                 flights.append(
                     build_response(
                         '|',
