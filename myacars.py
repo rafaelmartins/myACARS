@@ -8,7 +8,6 @@ from csv import DictReader
 from cStringIO import StringIO
 from datetime import datetime
 from flask import Flask, request
-from flask.logging import DEBUG_LOG_FORMAT
 from flask_admin import Admin, AdminIndexView as BaseAdminIndexView
 from flask_admin.contrib.sqla import ModelView as BaseModelView
 from flask_basicauth import BasicAuth as BaseBasicAuth
@@ -283,7 +282,7 @@ def smartcars_api():
             ',',
             '%02d:%02d:00' % (total_hours, total_minutes),
             result.total_flights,
-            int(result.total_landing_rate / result.total_flights),
+            result.total_landing_rate // result.total_flights,
             result.total_flights,
         )
 
