@@ -29,7 +29,7 @@
         </div>
         <div class="collapse navbar-collapse" id="navbar-collapse-1">
           <ul class="nav navbar-nav navbar-right">
-            <li class="active"><a href="{{ url_for('.home') }}">Home</a></li>
+            <li><a href="{{ url_for('.live') }}">Live Tracking</a></li>
           </ul>
         </div>
       </div>
@@ -54,6 +54,21 @@
                   It is a web application that receives data collected
                   by <a href="https://www.tfdidesign.com/smartCARS.php">smartCARS</a>, and
                   works like a single-user Virtual Airline.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title">Live Tracking</h4>
+            </div>
+            <div class="list-group">
+              <div class="list-group-item">
+                <p>
+                  Live tracking of flights is available.
+                </p>
+                <p>
+                  <a href="{{ url_for('.live') }}">Click here for details</a>
                 </p>
               </div>
             </div>
