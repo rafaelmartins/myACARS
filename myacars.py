@@ -260,7 +260,7 @@ admin.add_view(PositionView(Position, db.session))
 
 
 @app.context_processor
-def inject_stats():
+def get_stats():
     result = db.session.query(
         db.func.count(Flight.id).label('total_flights'),
         db.func.sum(Flight.landing_rate).label('total_landing_rate'),
@@ -361,22 +361,13 @@ def smartcars_api():
     elif action == 'getpilotcenterdata':
         if request.args.get('dbid') != '1':
             return 'AUTH_FAILED'
-        result = db.session.query(
-            db.func.count(Flight.id).label('total_flights'),
-            db.func.sum(Flight.landing_rate).label('total_landing_rate'),
-            db.func.sum(Flight.duration).label('total_duration'),
-        ).filter(
-            Flight.landing_rate.isnot(None),
-            Flight.log.isnot(None),
-        ).first()
-        total_hours = result.total_duration // 60
-        total_minutes = result.total_duration % 60
+        stats = get_stats()
         return build_response(
             ',',
-            '%02d:%02d:00' % (total_hours, total_minutes),
-            result.total_flights,
-            result.total_landing_rate // result.total_flights,
-            result.total_flights,
+            stats['total_hours'],
+            stats['total_flights'],
+            stats['avg_landing_rate'],
+            stats['total_flights'],
         )
 
     elif action == 'getairports':
