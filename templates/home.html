@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<h3>Flights</h3>
+
+<table class="table table-striped">
+  <tr>
+    <th>Callsign</th>
+    <th>Origin</th>
+    <th>Destination</th>
+    <th>Aircraft</th>
+    <th>Started on</th>
+  </tr>
+  {% for flight in flights %}
+  <tr>
+    <td>
+      <a href="{{ url_for('.flight', id=flight.id) }}">
+        {{ flight.airline_icao }}{{ flight.flight_number }}
+      </a>
+    </td>
+    <td>{{ flight.origin }}</td>
+    <td>{{ flight.destination }}</td>
+    <td>{{ flight.aircraft }}</td>
+    <td>{{ flight.start.strftime('%Y-%m-%d %H:%M') }} UTC</td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}

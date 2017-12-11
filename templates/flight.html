@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %} - Flight: {{ flight.html_title }}{% endblock %}
+
+{% block body_tag %} onload="initialize_flight('{{ url_for('.flight_geojson', id=flight.id) }}', null)"{% endblock %}
+
+{% block body %}
+<article>
+  <h3>Flight: {{ flight.html_title }}</h3>
+  <table class="table table-striped">
+    <tr>
+      <th>Origin:</th>
+      <td>{{ flight.origin }}</td>
+    </tr>
+    <tr>
+      <th>Destination:</th>
+      <td>{{ flight.destination }}</td>
+    </tr>
+    <tr>
+      <th>Aircraft:</th>
+      <td>{{ flight.aircraft }}</td>
+    </tr>
+    <tr>
+      <th>Route:</th>
+      <td>{{ flight.route }}</td>
+    </tr>
+    <tr>
+      <th>Flight Level:</th>
+      <td>FL{{ flight.flight_level }}</td>
+    </tr>
+    <tr>
+      <th>Duration:</th>
+      <td>{{ flight.duration_formatted }}</td>
+    </tr>
+    <tr>
+      <th>Landing Rate:</th>
+      <td>{{ flight.landing_rate }} fpm</td>
+    </tr>
+    {% if flight.start %}
+    <tr>
+      <th>Started on:</th>
+      <td>{{ flight.start.strftime('%Y-%m-%d %H:%M') }} UTC</td>
+    </tr>
+    {% endif %}
+  </table>
+  <h4>Map</h4>
+  <div id="map" class="map"></div>
+  <h4>Flight Data</h4>
+  <div id="flight_data"></div>
+  <h4>PIREP</h4>
+  <pre>{{ flight.log }}</pre>
+</article>
+{% endblock %}

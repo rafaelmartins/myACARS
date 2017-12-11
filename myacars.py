@@ -6,9 +6,11 @@ import re
 import requests
 from csv import DictReader
 from cStringIO import StringIO
-from datetime import datetime
-from flask import Flask, request
+from datetime import datetime, timedelta
+from flask import Flask, Markup, abort, flash, jsonify, render_template, \
+     request, url_for
 from flask_admin import Admin, AdminIndexView as BaseAdminIndexView
+from flask_admin.actions import action
 from flask_admin.contrib.sqla import ModelView as BaseModelView
 from flask_basicauth import BasicAuth as BaseBasicAuth
 from flask_migrate import Migrate, MigrateCommand
@@ -16,6 +18,8 @@ from flask_script import Manager
 from flask_sqlalchemy import SQLAlchemy
 
 re_log = re.compile(r'(.)(\[[0-9]{2}:[0-9]{2}:[0-9]{2}\])')
+re_clean_airport = re.compile(
+    r'(airport|air base|air force base|international)', re.I)
 
 app = Flask(__name__)
 
@@ -40,6 +44,10 @@ app.config.update(
     USERID='userid',
     PASSWORD='password',
     ENABLE_CHAT=False,
+
+    # public website settings
+    SITE_TITLE='myACARS',
+    SITE_TAGLINE='A personal Virtual Airline using smartCARS',
 )
 
 app.config.from_envvar('MYACARS_CONFIG', True)
@@ -102,6 +110,10 @@ class Airport(db.Model):
     longitude = db.Column(db.Float, nullable=False)
     country = db.Column(db.String(10), nullable=False)
 
+    @property
+    def name_clean(self):
+        return ' '.join(re_clean_airport.sub(u'', self.name).split())
+
     def __str__(self):
         return '%s - %s (%s)' % (self.icao, self.name, self.country)
 
@@ -125,9 +137,31 @@ class Aircraft(db.Model):
 
 
 class FlightView(ModelView):
+    column_exclude_list = ['log']
     column_searchable_list = ['airline_icao', 'flight_number']
     column_filters = ['airline_icao', 'flight_number']
     form_excluded_columns = ['duration', 'landing_rate', 'log', 'positions']
+
+    @action('clean_positions', 'Clean positions',
+            'Are you sure you want to clean positions for selected flights?')
+    def action_clean_positions(self, ids):
+        try:
+            for id in ids:
+                flt = Flight.query.get(int(id))
+                if flt is None:
+                    continue
+                if flt.log is not None:
+                    flash("Can't clean positions for completed flight: %s" %
+                          id, 'error')
+                    continue
+                for pos in flt.positions:
+                    db.session.delete(pos)
+                db.session.commit()
+                flash('Cleaned positions for flight: %s' % id)
+        except Exception as ex:
+            if not self.handle_view_exception(ex):
+                raise
+            flash('Failed to clean positions. %s' % ex, 'error')
 
 
 class Flight(db.Model):
@@ -153,6 +187,37 @@ class Flight(db.Model):
     log = db.Column(db.UnicodeText, nullable=True)
     comments = db.Column(db.UnicodeText, nullable=True)
 
+    @classmethod
+    def complete_flights(cls):
+        return cls.query.filter(cls.log.isnot(None))
+
+    @property
+    def duration_formatted(self):
+        if self.duration is None:
+            return None
+        total_hours = self.duration // 60
+        total_minutes = self.duration % 60
+        return '%02d:%02d:00' % (total_hours, total_minutes)
+
+    @property
+    def start(self):
+        if len(self.positions) == 0:
+            return None
+        return self.positions[0].timestamp
+
+    @property
+    def html_title(self):
+        return Markup(
+            '%s%s: %s (%s) &rarr; %s (%s)' % (
+                self.airline_icao,
+                self.flight_number,
+                self.origin.name_clean,
+                self.origin.icao,
+                self.destination.name_clean,
+                self.destination.icao,
+            )
+        )
+
     def __str__(self):
         return '%s -> %s' % (self.origin, self.destination)
 
@@ -177,6 +242,13 @@ class Position(db.Model):
     phase = db.Column(db.Integer, nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
+    @classmethod
+    def get_active_position(cls):
+        delta = timedelta(seconds=60)
+        return cls.query.filter(
+            cls.timestamp >= datetime.utcnow() - delta
+        ).order_by(cls.timestamp.desc()).first()
+
 
 admin = Admin(app, name='myACARS', template_mode='bootstrap3',
               index_view=AdminIndexView())
@@ -185,6 +257,25 @@ admin.add_view(AirportView(Airport, db.session))
 admin.add_view(AircraftView(Aircraft, db.session))
 admin.add_view(FlightView(Flight, db.session))
 admin.add_view(PositionView(Position, db.session))
+
+
+@app.context_processor
+def inject_stats():
+    result = db.session.query(
+        db.func.count(Flight.id).label('total_flights'),
+        db.func.sum(Flight.landing_rate).label('total_landing_rate'),
+        db.func.sum(Flight.duration).label('total_duration'),
+    ).filter(
+        Flight.landing_rate.isnot(None),
+        Flight.log.isnot(None),
+    ).first()
+    total_hours = result.total_duration // 60
+    total_minutes = result.total_duration % 60
+    return {
+        'total_hours': '%02d:%02d:00' % (total_hours, total_minutes),
+        'total_flights': result.total_flights,
+        'avg_landing_rate': result.total_landing_rate // result.total_flights,
+    }
 
 
 def build_response(separator, *args):
@@ -238,6 +329,8 @@ def smartcars_api():
 
     elif action == 'automaticlogin':
         if request.args.get('dbid') != '1':
+            return 'AUTH_FAILED'
+        if not request.args.get('oldsessionid'):
             return 'AUTH_FAILED'
         sess = Session.query.filter_by(
             sessionid=request.args.get('oldsessionid')).first()
@@ -366,6 +459,8 @@ def smartcars_api():
     elif action == 'positionreport':
         if request.args.get('dbid') != '1':
             return 'AUTH_FAILED'
+        if not request.args.get('sessionid'):
+            return 'AUTH_FAILED'
         sess = Session.query.filter_by(
             sessionid=request.args.get('sessionid')).first()
         if sess is None:
@@ -401,6 +496,8 @@ def smartcars_api():
 
     elif action == 'filepirep':
         if request.args.get('dbid') != '1':
+            return 'AUTH_FAILED'
+        if not request.args.get('sessionid'):
             return 'AUTH_FAILED'
         sess = Session.query.filter_by(
             sessionid=request.args.get('sessionid')).first()
@@ -445,6 +542,127 @@ def smartcars_api():
         'Script OK, Frame Version: myACARS/%s, Interface Version: myACARS/%s'
         % (__version__, __version__)
     )
+
+
+@app.route('/')
+def home():
+    return render_template('home.html',
+                           flights=Flight.complete_flights().order_by(
+                               Flight.id.desc()))
+
+
+@app.route('/live/')
+def live():
+    return render_template('live.html')
+
+
+@app.route('/live/json/')
+def live_json():
+    active = Position.get_active_position()
+    if active is None:
+        return jsonify({'live': False})
+    return jsonify({
+        'live': True,
+        'id': active.flight.id,
+        'html_title': active.flight.html_title,
+        'origin': str(active.flight.origin),
+        'destination': str(active.flight.destination),
+        'aircraft': str(active.flight.aircraft),
+        'route': active.flight.route,
+        'flight_level': str(active.flight.flight_level),
+        'geojson_url': url_for('.flight_geojson', id=active.flight.id),
+        'heading': active.heading,
+        'ground_speed': active.ground_speed,
+        'altitude': active.altitude,
+        'latitude': active.latitude,
+        'longitude': active.longitude,
+    })
+
+
+@app.route('/flight/<int:id>/')
+def flight(id):
+    flt = Flight.query.get(id)
+    if flt is None or flt.log is None:
+        abort(404)
+    return render_template('flight.html', flight=flt)
+
+
+@app.route('/flight/<int:id>/geojson/')
+def flight_geojson(id):
+    flt = Flight.query.get_or_404(id)
+    rv = {
+        'type': 'FeatureCollection',
+        'features': [
+            {
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'LineString',
+                    'coordinates': [
+                        (i.longitude, i.latitude) for i in flt.positions
+                    ],
+                },
+                'properties': {
+                    'type': 'route',
+                    'flight_data': [
+                        ['Altitude'] + [i.altitude for i in flt.positions],
+                        ['Ground Speed'] +
+                        [i.ground_speed for i in flt.positions],
+                    ],
+                },
+            },
+        ]
+    }
+    if flt.log is not None:
+        rv['features'] += [
+            {
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [
+                        flt.origin.longitude,
+                        flt.origin.latitude,
+                    ]
+                },
+                'properties': {
+                    'type': 'airport-origin',
+                }
+            },
+            {
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [
+                        flt.destination.longitude,
+                        flt.destination.latitude,
+                    ]
+                },
+                'properties': {
+                    'type': 'airport-destination',
+                }
+            },
+        ]
+    else:
+        lat = flt.origin.latitude
+        lon = flt.origin.longitude
+        if len(flt.positions) > 0:
+            lat = flt.positions[-1].latitude
+            lon = flt.positions[-1].longitude
+        rv['features'] += [
+            {
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [
+                        lon,
+                        lat,
+                    ]
+                },
+                'properties': {
+                    'type': 'plane',
+                }
+            },
+        ]
+    return jsonify(rv)
 
 
 @manager.command

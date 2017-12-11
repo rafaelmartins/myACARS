@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %} - Live Flight{% endblock %}
+
+{% block body_tag %} onload="initialize_live()"{% endblock %}
+
+{% block body %}
+<article>
+  <div id="not-live">
+    <h3>I'm not flying right now, please check again later!</h3>
+  </div>
+  <div id="live-details">
+    <h3>Live Flight: <span id="flight-title"></span></h3>
+    <table class="table table-striped">
+      <tr>
+        <th>Origin:</th>
+        <td id="origin"></td>
+      </tr>
+      <tr>
+        <th>Destination:</th>
+        <td id="destination"></td>
+      </tr>
+      <tr>
+        <th>Aircraft:</th>
+        <td id="aircraft"></td>
+      </tr>
+      <tr>
+        <th>Route:</th>
+        <td id="route"></td>
+      </tr>
+      <tr>
+        <th>Flight Level:</th>
+        <td id="flight-level"></td>
+      </tr>
+    </table>
+    <h4>Map</h4>
+    <div id="map" class="map"></div>
+    <h4>Flight Data</h4>
+    <div id="flight_data"></div>
+  </div>
+</article>
+{% endblock %}
