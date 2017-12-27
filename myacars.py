@@ -232,8 +232,9 @@ class Position(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     flight_id = db.Column(db.Integer, db.ForeignKey(Flight.id), nullable=False)
-    flight = db.relationship('Flight', backref='positions',
-                             foreign_keys=[flight_id])
+    flight = db.relationship('Flight', backref=db.backref(
+        'positions', order_by=lambda: Position.timestamp
+    ), foreign_keys=[flight_id])
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
     altitude = db.Column(db.Integer, nullable=False)
