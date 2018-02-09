@@ -270,12 +270,13 @@ def get_stats():
         Flight.landing_rate.isnot(None),
         Flight.log.isnot(None),
     ).first()
-    total_hours = result.total_duration // 60
-    total_minutes = result.total_duration % 60
+    total_hours = (result.total_duration or 0) // 60
+    total_minutes = (result.total_duration or 0) % 60
     return {
         'total_hours': '%02d:%02d:00' % (total_hours, total_minutes),
-        'total_flights': result.total_flights,
-        'avg_landing_rate': result.total_landing_rate // result.total_flights,
+        'total_flights': result.total_flights or 0,
+        'avg_landing_rate': ((result.total_landing_rate or 0) //
+                             (result.total_flights or 1)),
     }
 
 
