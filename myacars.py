@@ -7,12 +7,11 @@ import requests
 from csv import DictReader
 from cStringIO import StringIO
 from datetime import datetime, timedelta
-from flask import Flask, Markup, abort, flash, jsonify, render_template, \
-     request, url_for
+from flask import Flask, Markup, abort, flash, jsonify, make_response, \
+     render_template, request, url_for
 from flask_admin import Admin, AdminIndexView as BaseAdminIndexView
 from flask_admin.actions import action
 from flask_admin.contrib.sqla import ModelView as BaseModelView
-from flask_basicauth import BasicAuth as BaseBasicAuth
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from flask_sqlalchemy import SQLAlchemy
@@ -32,9 +31,6 @@ app.config.update(
     SQLALCHEMY_DATABASE_URI='sqlite:////tmp/test.db',
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
 
-    # Flask-BasicAuth settings
-    BASIC_AUTH_REALM='myACARS Admin',
-
     # myACARS settings
     AIRLINE_ICAO='AAA',
     FIRST_NAME='Airline',
@@ -48,6 +44,7 @@ app.config.update(
     # public website settings
     SITE_TITLE='myACARS',
     SITE_TAGLINE='A personal Virtual Airline using smartCARS',
+    BASIC_AUTH_REALM='myACARS Admin',
 )
 
 app.config.from_envvar('MYACARS_CONFIG', True)
@@ -58,23 +55,23 @@ manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 
 
-class BasicAuth(BaseBasicAuth):
-
-    def check_credentials(self, username, password):
-        return (username == app.config['USERID'] and
-                password == app.config['PASSWORD'])
-
-
-basic_auth = BasicAuth(app)
-
-
 class BasicAuthMixin:
 
     def is_accessible(self):
-        return basic_auth.authenticate()
+        auth = request.authorization
+        if not auth:
+            return False
+        if auth.type != 'basic':
+            return False
+        if auth.username != app.config['USERID']:
+            return False
+        if auth.password != app.config['PASSWORD']:
+            return False
+        return True
 
     def inaccessible_callback(self, name, **kwargs):
-        return basic_auth.challenge()
+        realm = 'Basic realm="%s"' % app.config['BASIC_AUTH_REALM']
+        return make_response('', 401, {'WWW-Authenticate': realm})
 
 
 class AdminIndexView(BasicAuthMixin, BaseAdminIndexView):

@@ -1,5 +1,4 @@
 flask
-flask-basicauth
 flask-script
 flask-migrate
 flask-sqlalchemy
