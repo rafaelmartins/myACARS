@@ -305,23 +305,6 @@ def get_response_user():
 
 @app.route('/smartcars/', methods=['GET', 'POST'])
 def smartcars_api():
-    app.logger.debug(
-        (
-            u'\n'
-            u'### HEADERS:\n'
-            u'%s'
-            u'### ARGS:\n'
-            u'%s\n'
-            u'\n'
-            u'### FORM:\n'
-            u'%s\n'
-        ) % (
-            unicode(request.headers).replace('\r', ''),
-            request.args,
-            request.form,
-        )
-    )
-
     action = request.args.get('action')
 
     if action == 'manuallogin':
