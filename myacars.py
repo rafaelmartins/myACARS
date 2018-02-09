@@ -277,6 +277,13 @@ def get_stats():
     }
 
 
+@app.context_processor
+def get_version():
+    return {
+        'version': __version__,
+    }
+
+
 def build_response(separator, *args):
     return separator.join([unicode(i).replace(separator, u'') for i in args])
 
