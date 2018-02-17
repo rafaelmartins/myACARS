@@ -655,10 +655,10 @@ def populate_airports():
     for line in reader:
         if not line['gps_code']:
             continue
-        if len(line['gps_code']) > 4:
-            raise RuntimeError('Invalid ICAO: %s' % line['gps_code'])
         if line['type'] not in ('medium_airport', 'large_airport'):
             continue
+        if len(line['gps_code']) > 4:
+            raise RuntimeError('Invalid ICAO: %s' % line['gps_code'])
         print line['gps_code'], '-', line['name']
         apt = Airport.query.filter_by(icao=line['gps_code']).first()
         create_apt = apt is None
