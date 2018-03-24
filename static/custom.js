@@ -246,7 +246,7 @@ function refresh_live() {
             $("#destination").html(data.destination);
             $("#aircraft").html(data.aircraft);
             $("#flight-level").html('FL' + data.flight_level);
-            if (data.ofp_url !== null) {
+            if (data.ofp_url) {
                 $("ofp").show();
                 $("ofp-url").attr("href", data.ofp_url);
             }

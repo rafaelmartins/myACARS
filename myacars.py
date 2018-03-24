@@ -134,7 +134,7 @@ class Aircraft(db.Model):
 
 
 class FlightView(ModelView):
-    column_exclude_list = ['log']
+    column_exclude_list = ['log', 'ofp_url']
     column_searchable_list = ['airline_icao', 'flight_number']
     column_filters = ['airline_icao', 'flight_number']
     form_excluded_columns = ['duration', 'landing_rate', 'log', 'positions']
