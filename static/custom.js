@@ -2,7 +2,7 @@ $(function () {
     // Media fluid width.
     // based on http://css-tricks.com/fluid-width-youtube-videos/
     var $container = $("article"),
-        $elements = $("article iframe:not(article div.no-resize iframe), article img:not(article div.no-resize img)");
+        $elements = $("article iframe, article img");
     $elements.each(function() {
         $(this).data('ratio', this.width / this.height)
                .removeAttr('height')
@@ -246,6 +246,10 @@ function refresh_live() {
             $("#destination").html(data.destination);
             $("#aircraft").html(data.aircraft);
             $("#flight-level").html('FL' + data.flight_level);
+            if (data.ofp_url !== null) {
+                $("ofp").show();
+                $("ofp-url").attr("href", data.ofp_url);
+            }
             live_initialized = true;
         }
         if (plane !== null && chart !== null) {
@@ -290,6 +294,7 @@ function refresh_live() {
             }
             else {
                 $("#live-details").hide();
+                $("#ofp-url").hide();
                 $("#not-live").show();
                 live_initialized = false;
             }
@@ -298,6 +303,7 @@ function refresh_live() {
             if (!data.live) {
                 if (live_initialized) {
                     $("#live-details").hide();
+                    $("#ofp-url").hide();
                     $("#not-live").show();
                     live_initialized = false;
                 }

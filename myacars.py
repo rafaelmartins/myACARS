@@ -183,6 +183,7 @@ class Flight(db.Model):
     landing_rate = db.Column(db.Integer, nullable=True)
     log = db.Column(db.UnicodeText, nullable=True)
     comments = db.Column(db.UnicodeText, nullable=True)
+    ofp_url = db.Column(db.UnicodeText, nullable=True)
 
     @classmethod
     def complete_flights(cls):
@@ -550,6 +551,7 @@ def live_json():
         'aircraft': str(active.flight.aircraft),
         'route': active.flight.route,
         'flight_level': str(active.flight.flight_level),
+        'ofp_url': active.ofp_url,
         'geojson_url': url_for('.flight_geojson', id=active.flight.id),
         'heading': active.heading,
         'ground_speed': active.ground_speed,

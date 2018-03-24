@@ -42,6 +42,12 @@
       <td>{{ flight.start.strftime('%Y-%m-%d %H:%M') }} UTC</td>
     </tr>
     {% endif %}
+    {% if flight.ofp_url %}
+    <tr>
+      <th>Operational Flight Plan:</th>
+      <td><a href="{{ flight.ofp_url }}">Download</a></td>
+    </tr>
+    {% endif %}
   </table>
   <h4>Map</h4>
   <div id="map" class="map"></div>
