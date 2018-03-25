@@ -2,23 +2,28 @@
 
 __version__ = 'git'
 
+import os
 import re
 import requests
 from csv import DictReader
 from cStringIO import StringIO
 from datetime import datetime, timedelta
 from flask import Flask, Markup, abort, flash, jsonify, make_response, \
-     render_template, request, url_for
+     render_template, request, send_from_directory, url_for
 from flask_admin import Admin, AdminIndexView as BaseAdminIndexView
 from flask_admin.actions import action
 from flask_admin.contrib.sqla import ModelView as BaseModelView
+from flask_admin.form.upload import FileUploadField
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.event import listens_for
 
 re_log = re.compile(r'(.)(\[[0-9]{2}:[0-9]{2}:[0-9]{2}\])')
 re_clean_airport = re.compile(
     r'(airport|air base|air force base|international)', re.I)
+
+cwd = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
 
@@ -41,6 +46,9 @@ app.config.update(
     PASSWORD='password',
     ENABLE_CHAT=False,
 
+    # admin settings
+    OFP_PATH=os.path.join(cwd, 'ofp'),
+
     # public website settings
     SITE_TITLE='myACARS',
     SITE_TAGLINE='A personal Virtual Airline using smartCARS',
@@ -53,6 +61,9 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
+
+if not os.path.isdir(app.config['OFP_PATH']):
+    os.makedirs(app.config['OFP_PATH'])
 
 
 class BasicAuthMixin:
@@ -134,10 +145,18 @@ class Aircraft(db.Model):
 
 
 class FlightView(ModelView):
-    column_exclude_list = ['log', 'ofp_url']
+    column_exclude_list = ['log', 'ofp']
     column_searchable_list = ['airline_icao', 'flight_number']
     column_filters = ['airline_icao', 'flight_number']
     form_excluded_columns = ['duration', 'landing_rate', 'log', 'positions']
+    form_overrides = {'ofp': FileUploadField}
+    form_args = {
+        'ofp': {
+            'label': 'OFP',
+            'base_path': app.config['OFP_PATH'],
+            'allowed_extensions': ['pdf'],
+        },
+    }
 
     @action('clean_positions', 'Clean positions',
             'Are you sure you want to clean positions for selected flights?')
@@ -183,7 +202,7 @@ class Flight(db.Model):
     landing_rate = db.Column(db.Integer, nullable=True)
     log = db.Column(db.UnicodeText, nullable=True)
     comments = db.Column(db.UnicodeText, nullable=True)
-    ofp_url = db.Column(db.UnicodeText, nullable=True)
+    ofp = db.Column(db.String(256), nullable=True)
 
     @classmethod
     def complete_flights(cls):
@@ -218,6 +237,15 @@ class Flight(db.Model):
 
     def __str__(self):
         return '%s -> %s' % (self.origin, self.destination)
+
+
+@listens_for(Flight, 'after_delete')
+def del_ofp(mapper, connection, target):
+    if target.ofp:
+        try:
+            os.remove(os.path.join(app.config['OFP_PATH'], target.ofp))
+        except OSError:
+            pass
 
 
 class PositionView(ModelView):
@@ -532,6 +560,13 @@ def home():
                                Flight.id.desc()))
 
 
+@app.route('/ofp/<filename>')
+def ofp(filename):
+    if not filename.endswith('.pdf'):
+        abort(404)
+    return send_from_directory(app.config['OFP_PATH'], filename)
+
+
 @app.route('/live/')
 def live():
     return render_template('live.html')
@@ -539,9 +574,13 @@ def live():
 
 @app.route('/live/json/')
 def live_json():
-    active = Position.get_active_position()
+    #active = Position.get_active_position()
+    active = Position.query.first()
     if active is None:
         return jsonify({'live': False})
+    ofp_url = None
+    if active.flight.ofp:
+        ofp_url = url_for('.ofp', filename=active.flight.ofp)
     return jsonify({
         'live': True,
         'id': active.flight.id,
@@ -551,7 +590,7 @@ def live_json():
         'aircraft': str(active.flight.aircraft),
         'route': active.flight.route,
         'flight_level': str(active.flight.flight_level),
-        'ofp_url': active.ofp_url,
+        'ofp_url': ofp_url,
         'geojson_url': url_for('.flight_geojson', id=active.flight.id),
         'heading': active.heading,
         'ground_speed': active.ground_speed,

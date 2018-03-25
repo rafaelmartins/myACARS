@@ -246,10 +246,6 @@ function refresh_live() {
             $("#destination").html(data.destination);
             $("#aircraft").html(data.aircraft);
             $("#flight-level").html('FL' + data.flight_level);
-            if (data.ofp_url) {
-                $("ofp").show();
-                $("ofp-url").attr("href", data.ofp_url);
-            }
             live_initialized = true;
         }
         if (plane !== null && chart !== null) {
@@ -284,7 +280,16 @@ function refresh_live() {
                 ]
             });
         }
-        $("#route").html(data.route);
+        if (live_initialized) {
+            if (data.ofp_url) {
+                $("#ofp").show();
+                $("#ofp-url").attr("href", data.ofp_url);
+            }
+            else {
+                $("#ofp").hide();
+            }
+            $("#route").html(data.route);
+        }
     }
 
     $.getJSON('/live/json/', function(data) {
@@ -294,7 +299,7 @@ function refresh_live() {
             }
             else {
                 $("#live-details").hide();
-                $("#ofp-url").hide();
+                $("#ofp").hide();
                 $("#not-live").show();
                 live_initialized = false;
             }
@@ -303,7 +308,7 @@ function refresh_live() {
             if (!data.live) {
                 if (live_initialized) {
                     $("#live-details").hide();
-                    $("#ofp-url").hide();
+                    $("#ofp").hide();
                     $("#not-live").show();
                     live_initialized = false;
                 }
