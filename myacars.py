@@ -574,8 +574,7 @@ def live():
 
 @app.route('/live/json/')
 def live_json():
-    #active = Position.get_active_position()
-    active = Position.query.first()
+    active = Position.get_active_position()
     if active is None:
         return jsonify({'live': False})
     ofp_url = None
