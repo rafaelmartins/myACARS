@@ -122,7 +122,7 @@ class Airport(db.Model):
     def name_clean(self):
         return ' '.join(re_clean_airport.sub(u'', self.name).split())
 
-    def __str__(self):
+    def __unicode__(self):
         return '%s - %s (%s)' % (self.icao, self.name, self.country)
 
 
@@ -140,7 +140,7 @@ class Aircraft(db.Model):
     max_passengers = db.Column(db.Integer, nullable=False)
     max_cargo = db.Column(db.Integer, nullable=False)
 
-    def __str__(self):
+    def __unicode__(self):
         return '%s - %s (%s)' % (self.registration, self.name, self.icao)
 
 
@@ -235,7 +235,7 @@ class Flight(db.Model):
             )
         )
 
-    def __str__(self):
+    def __unicode__(self):
         return '%s -> %s' % (self.origin, self.destination)
 
 
@@ -584,11 +584,11 @@ def live_json():
         'live': True,
         'id': active.flight.id,
         'html_title': active.flight.html_title,
-        'origin': str(active.flight.origin),
-        'destination': str(active.flight.destination),
-        'aircraft': str(active.flight.aircraft),
+        'origin': unicode(active.flight.origin),
+        'destination': unicode(active.flight.destination),
+        'aircraft': unicode(active.flight.aircraft),
         'route': active.flight.route,
-        'flight_level': str(active.flight.flight_level),
+        'flight_level': unicode(active.flight.flight_level),
         'ofp_url': ofp_url,
         'geojson_url': url_for('.flight_geojson', id=active.flight.id),
         'heading': active.heading,
