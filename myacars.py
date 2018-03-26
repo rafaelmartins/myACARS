@@ -235,6 +235,22 @@ class Flight(db.Model):
             )
         )
 
+    @property
+    def positions_filtered(self):
+        prev = None
+        positions = []
+        for pos in self.positions:
+            if prev is not None:
+                if not (prev.altitude == pos.altitude and
+                        prev.latitude == pos.latitude and
+                        prev.longitude == pos.longitude and
+                        prev.heading == pos.heading and
+                        prev.ground_speed != 0 and
+                        prev.phase == pos.phase):
+                    positions.append(pos)
+            prev = pos
+        return positions
+
     def __unicode__(self):
         return u'%s -> %s' % (self.origin, self.destination)
 
@@ -610,6 +626,7 @@ def flight(id):
 @app.route('/flight/<int:id>/geojson/')
 def flight_geojson(id):
     flt = Flight.query.get_or_404(id)
+    positions = flt.positions_filtered
     rv = {
         'type': 'FeatureCollection',
         'features': [
@@ -618,15 +635,14 @@ def flight_geojson(id):
                 'geometry': {
                     'type': 'LineString',
                     'coordinates': [
-                        (i.longitude, i.latitude) for i in flt.positions
+                        (i.longitude, i.latitude) for i in positions
                     ],
                 },
                 'properties': {
                     'type': 'route',
                     'flight_data': [
-                        ['Altitude'] + [i.altitude for i in flt.positions],
-                        ['Ground Speed'] +
-                        [i.ground_speed for i in flt.positions],
+                        ['Altitude'] + [i.altitude for i in positions],
+                        ['Ground Speed'] + [i.ground_speed for i in positions],
                     ],
                 },
             },
