@@ -141,7 +141,7 @@ class Aircraft(db.Model):
     max_cargo = db.Column(db.Integer, nullable=False)
 
     def __unicode__(self):
-        return '%s - %s (%s)' % (self.registration, self.name, self.icao)
+        return u'%s - %s (%s)' % (self.registration, self.name, self.icao)
 
 
 class FlightView(ModelView):
@@ -236,7 +236,7 @@ class Flight(db.Model):
         )
 
     def __unicode__(self):
-        return '%s -> %s' % (self.origin, self.destination)
+        return u'%s -> %s' % (self.origin, self.destination)
 
 
 @listens_for(Flight, 'after_delete')
