@@ -90,7 +90,8 @@ class AdminIndexView(BasicAuthMixin, BaseAdminIndexView):
 
 
 class ModelView(BasicAuthMixin, BaseModelView):
-    pass
+    column_display_pk = True
+    column_default_sort = 'id'
 
 
 class SessionView(ModelView):
