@@ -146,7 +146,7 @@ class Aircraft(db.Model):
 
 
 class FlightView(ModelView):
-    column_exclude_list = ['log', 'ofp']
+    column_exclude_list = ['log', 'ofp', 'comments']
     column_searchable_list = ['airline_icao', 'flight_number']
     column_filters = ['airline_icao', 'flight_number']
     form_excluded_columns = ['duration', 'landing_rate', 'log', 'positions']
@@ -276,7 +276,8 @@ class Position(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     flight_id = db.Column(db.Integer, db.ForeignKey(Flight.id), nullable=False)
     flight = db.relationship('Flight', backref=db.backref(
-        'positions', order_by=lambda: Position.timestamp
+        'positions', order_by=lambda: Position.timestamp,
+        cascade='all, delete-orphan'
     ), foreign_keys=[flight_id])
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
