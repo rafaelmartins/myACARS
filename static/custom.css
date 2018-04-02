@@ -30,6 +30,6 @@ h5 {
     stroke-width: 2px;
 }
 
-#not-live, #live-details, #ofp {
+#live-details, #ofp {
     display: none;
 }
