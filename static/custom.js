@@ -293,28 +293,15 @@ function refresh_live() {
     }
 
     $.getJSON('/live/json/', function(data) {
-        if (live_initialized === null) {
-            if (data.live) {
-                update_flight(data);
-            }
-            else {
+        if (data.live) {
+            update_flight(data);
+        }
+        else {
+            if (live_initialized) {
                 $("#live-details").hide();
                 $("#ofp").hide();
                 $("#not-live").show();
                 live_initialized = false;
-            }
-        }
-        else {
-            if (!data.live) {
-                if (live_initialized) {
-                    $("#live-details").hide();
-                    $("#ofp").hide();
-                    $("#not-live").show();
-                    live_initialized = false;
-                }
-            }
-            else {
-                update_flight(data);
             }
         }
     });
