@@ -111,9 +111,16 @@ function initialize_flight(geojson_url, data) {
         }),
         layers: [
             new ol.layer.Tile({
-                source: new ol.source.OSM(),
+                source: new ol.source.XYZ({
+                    attributions: [
+                        new ol.Attribution({
+                            html: "© OpenStreetMap -Mitwirkende"
+                        })
+                    ],
+                    url: location.protocol + '//{a-d}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png'
+                }),
                 name: 'osm',
-                title: 'OpenStreetMap',
+                title: 'OSMde',
                 type: 'base'
             }),
             new ol.layer.Vector({
