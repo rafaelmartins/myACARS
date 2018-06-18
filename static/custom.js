@@ -181,13 +181,19 @@ function initialize_flight(geojson_url, data) {
 
     var change_key = source.on('change', function(e) {
         if (source.getState() == 'ready') {
+            var origin = null, destination = null;
             source.forEachFeature(function(feature) {
+                if (feature.get('type') === 'airport-origin') {
+                    origin = feature.getGeometry().getCoordinates();
+                }
+                if (feature.get('type') === 'airport-destination') {
+                    destination = feature.getGeometry().getCoordinates();
+                }
                 if (feature.get('type') === 'plane') {
                     plane = feature;
                 }
                 if (feature.get('type') === 'route') {
                     route = feature;
-                    view.fit(feature.getGeometry().getExtent(), map.getSize());
                     var flight_data = feature.get('flight_data');
                     altitude_list = flight_data[0];
                     ground_speed_list = flight_data[1];
@@ -235,6 +241,10 @@ function initialize_flight(geojson_url, data) {
                 }
             });
             ol.Observable.unByKey(change_key);
+            if (origin !== null && destination !== null) {
+                var ext = ol.extent.boundingExtent([destination, origin]);
+                view.fit(ext, map.getSize());
+            }
         }
     });
 }
