@@ -648,10 +648,6 @@ def flight_geojson(id):
                     ],
                 },
             },
-        ]
-    }
-    if flt.log is not None:
-        rv['features'] += [
             {
                 'type': 'Feature',
                 'geometry': {
@@ -679,7 +675,8 @@ def flight_geojson(id):
                 }
             },
         ]
-    else:
+    }
+    if flt.log is None:
         lat = flt.origin.latitude
         lon = flt.origin.longitude
         if len(flt.positions) > 0:
