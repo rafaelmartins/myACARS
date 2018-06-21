@@ -106,9 +106,6 @@ function initialize_flight(geojson_url, data) {
 
     map = new ol.Map({
         target: 'map',
-        interactions: ol.interaction.defaults({
-            mouseWheelZoom: false
-        }),
         layers: [
             new ol.layer.Tile({
                 source: new ol.source.XYZ({
