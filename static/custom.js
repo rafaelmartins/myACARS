@@ -261,18 +261,12 @@ function refresh_live() {
             live_initialized = true;
         }
         if (plane !== null && chart !== null) {
-            route.getGeometry().appendCoordinate(
-                ol.proj.fromLonLat([
-                    data.longitude,
-                    data.latitude,
-                ])
-            );
-            plane.getGeometry().setCoordinates(
-                ol.proj.fromLonLat([
-                    data.longitude,
-                    data.latitude,
-                ])
-            );
+            var coord = ol.proj.fromLonLat([
+                data.longitude,
+                data.latitude,
+            ]);
+            route.getGeometry().appendCoordinate(coord);
+            plane.getGeometry().setCoordinates(coord);
             var style = plane.getStyle();
             if (style === null) {
                 style = new ol.style.Style({
