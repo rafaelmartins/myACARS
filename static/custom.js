@@ -85,6 +85,7 @@ function get_plane_icon(data) {
 
 var map = null;
 var source = null;
+var view = null;
 var plane = null;
 var route = null;
 
@@ -92,13 +93,20 @@ var chart = null;
 var altitude_list = [];
 var ground_speed_list = [];
 
+function zoom_to_fit() {
+    if (route !== null && view !== null) {
+        view.fit(route.getGeometry().getExtent(), map.getSize());
+    }
+}
+
+
 function initialize_flight(geojson_url, data) {
     source = new ol.source.Vector({
         format: new ol.format.GeoJSON(),
         url: geojson_url
     })
 
-    var view = new ol.View({
+    view = new ol.View({
         center: [0, 0],
         zoom: 5,
         maxZoom: 18
@@ -178,14 +186,7 @@ function initialize_flight(geojson_url, data) {
 
     var change_key = source.on('change', function(e) {
         if (source.getState() == 'ready') {
-            var origin = null, destination = null;
             source.forEachFeature(function(feature) {
-                if (feature.get('type') === 'airport-origin') {
-                    origin = feature.getGeometry().getCoordinates();
-                }
-                if (feature.get('type') === 'airport-destination') {
-                    destination = feature.getGeometry().getCoordinates();
-                }
                 if (feature.get('type') === 'plane') {
                     plane = feature;
                 }
@@ -237,11 +238,8 @@ function initialize_flight(geojson_url, data) {
                     });
                 }
             });
+            zoom_to_fit();
             ol.Observable.unByKey(change_key);
-            if (origin !== null && destination !== null) {
-                var ext = ol.extent.boundingExtent([destination, origin]);
-                view.fit(ext, map.getSize());
-            }
         }
     });
 }
@@ -285,6 +283,7 @@ function refresh_live() {
             else {
                 style.setImage(get_plane_icon(data));
             }
+            zoom_to_fit();
             altitude_list.push(data.altitude);
             ground_speed_list.push(data.ground_speed);
             chart.load({
