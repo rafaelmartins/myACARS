@@ -6,7 +6,6 @@ import os
 import re
 import requests
 from csv import DictReader
-from cStringIO import StringIO
 from datetime import datetime, timedelta
 from flask import Flask, Markup, abort, flash, jsonify, make_response, \
      render_template, request, send_from_directory, url_for
@@ -17,6 +16,7 @@ from flask_admin.form.upload import FileUploadField
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from flask_sqlalchemy import SQLAlchemy
+from io import StringIO
 from sqlalchemy.event import listens_for
 
 re_log = re.compile(r'(.)(\[[0-9]{2}:[0-9]{2}:[0-9]{2}\])')
@@ -121,9 +121,9 @@ class Airport(db.Model):
 
     @property
     def name_clean(self):
-        return ' '.join(re_clean_airport.sub(u'', self.name).split())
+        return ' '.join(re_clean_airport.sub('', self.name).split())
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s - %s (%s)' % (self.icao, self.name, self.country)
 
 
@@ -141,8 +141,8 @@ class Aircraft(db.Model):
     max_passengers = db.Column(db.Integer, nullable=False)
     max_cargo = db.Column(db.Integer, nullable=False)
 
-    def __unicode__(self):
-        return u'%s - %s (%s)' % (self.registration, self.name, self.icao)
+    def __str__(self):
+        return '%s - %s (%s)' % (self.registration, self.name, self.icao)
 
 
 class FlightView(ModelView):
@@ -252,8 +252,8 @@ class Flight(db.Model):
             prev = pos
         return positions
 
-    def __unicode__(self):
-        return u'%s -> %s' % (self.origin, self.destination)
+    def __str__(self):
+        return '%s -> %s' % (self.origin, self.destination)
 
 
 @listens_for(Flight, 'after_delete')
@@ -332,7 +332,7 @@ def get_version():
 
 
 def build_response(separator, *args):
-    return separator.join([unicode(i).replace(separator, u'') for i in args])
+    return separator.join([str(i).replace(separator, '') for i in args])
 
 
 def get_response_user():
@@ -602,11 +602,11 @@ def live_json():
         'live': True,
         'id': active.flight.id,
         'html_title': active.flight.html_title,
-        'origin': unicode(active.flight.origin),
-        'destination': unicode(active.flight.destination),
-        'aircraft': unicode(active.flight.aircraft),
+        'origin': str(active.flight.origin),
+        'destination': str(active.flight.destination),
+        'aircraft': str(active.flight.aircraft),
         'route': active.flight.route,
-        'flight_level': unicode(active.flight.flight_level),
+        'flight_level': str(active.flight.flight_level),
         'ofp_url': ofp_url,
         'geojson_url': url_for('.flight_geojson', id=active.flight.id),
         'heading': active.heading,
@@ -706,7 +706,7 @@ def populate_airports():
     resp = requests.get('http://ourairports.com/data/airports.csv')
     resp.raise_for_status()
 
-    reader = DictReader(StringIO(resp.content))
+    reader = DictReader(StringIO(resp.content.decode('utf-8')))
     for line in reader:
         if not line['gps_code']:
             continue
@@ -714,12 +714,12 @@ def populate_airports():
             continue
         if len(line['gps_code']) > 4:
             raise RuntimeError('Invalid ICAO: %s' % line['gps_code'])
-        print line['gps_code'], '-', line['name']
+        print(line['gps_code'], '-', line['name'])
         apt = Airport.query.filter_by(icao=line['gps_code']).first()
         create_apt = apt is None
         if create_apt:
             apt = Airport(icao=line['gps_code'])
-        apt.name = line['name'].decode('utf-8')
+        apt.name = line['name']
         apt.latitude = line['latitude_deg']
         apt.longitude = line['longitude_deg']
         apt.country = line['iso_country']

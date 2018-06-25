@@ -55,9 +55,9 @@ def upgrade():
     sa.Column('landing_rate', sa.Integer(), nullable=True),
     sa.Column('log', sa.UnicodeText(), nullable=True),
     sa.Column('comments', sa.UnicodeText(), nullable=True),
-    sa.ForeignKeyConstraint(['aircraft_id'], [u'aircraft.id'], ),
-    sa.ForeignKeyConstraint(['destination_id'], [u'airport.id'], ),
-    sa.ForeignKeyConstraint(['origin_id'], [u'airport.id'], ),
+    sa.ForeignKeyConstraint(['aircraft_id'], ['aircraft.id'], ),
+    sa.ForeignKeyConstraint(['destination_id'], ['airport.id'], ),
+    sa.ForeignKeyConstraint(['origin_id'], ['airport.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('position',
@@ -70,7 +70,7 @@ def upgrade():
     sa.Column('ground_speed', sa.Integer(), nullable=False),
     sa.Column('phase', sa.Integer(), nullable=True),
     sa.Column('timestamp', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['flight_id'], [u'flight.id'], ),
+    sa.ForeignKeyConstraint(['flight_id'], ['flight.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
