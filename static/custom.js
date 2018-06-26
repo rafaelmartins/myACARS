@@ -217,7 +217,7 @@ function initialize_flight(geojson_url, data) {
     });
 }
 
-var live_initialized = null;
+var live_initialized = false;
 
 function refresh_live() {
 
@@ -280,7 +280,16 @@ function refresh_live() {
                 $("#live-details").hide();
                 $("#ofp").hide();
                 $("#not-live").show();
+                $("#map").html("");
+                $("#flight_data").html("");
                 live_initialized = false;
+                map = null;
+                source = null;
+                plane = null;
+                route = null;
+                chart = null;
+                altitude_list = [];
+                ground_speed_list = [];
             }
         }
     });
