@@ -575,7 +575,7 @@ def smartcars_api():
 def home():
     return render_template('home.html',
                            flights=Flight.complete_flights().order_by(
-                               Flight.id.desc()))
+                               Flight.id.desc()), menu_flights=True)
 
 
 @app.route('/ofp/<filename>')
@@ -587,7 +587,7 @@ def ofp(filename):
 
 @app.route('/live/')
 def live():
-    return render_template('live.html')
+    return render_template('live.html', menu_live=True)
 
 
 @app.route('/live/json/')
@@ -622,7 +622,7 @@ def flight(id):
     flt = Flight.query.get(id)
     if flt is None or flt.log is None:
         abort(404)
-    return render_template('flight.html', flight=flt)
+    return render_template('flight.html', flight=flt, menu_flights=True)
 
 
 @app.route('/flight/<int:id>/geojson/')

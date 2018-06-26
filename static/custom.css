@@ -22,3 +22,16 @@ pre {
 #live-details, #ofp {
     display: none;
 }
+
+#card-online, #card-offline {
+    display: none;
+    font-weight: bold;
+}
+
+#card-online {
+    color: green;
+}
+
+#card-offline {
+    color: red;
+}

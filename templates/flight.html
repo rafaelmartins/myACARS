@@ -2,7 +2,7 @@
 
 {% block title %} - Flight: {{ flight.html_title }}{% endblock %}
 
-{% block body_tag %} onload="initialize_flight('{{ url_for('.flight_geojson', id=flight.id) }}', null)"{% endblock %}
+{% block body_tag %} onload="initialize_online(); initialize_flight('{{ url_for('.flight_geojson', id=flight.id) }}', null)"{% endblock %}
 
 {% block body %}
 <article>

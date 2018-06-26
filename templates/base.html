@@ -20,10 +20,10 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarResponsive">
           <ul class="navbar-nav ml-auto">
-              <li class="nav-item{% if request.path == url_for('.home') %} active{% endif %}">
+              <li class="nav-item{% if menu_flights %} active{% endif %}">
               <a class="nav-link" href="{{ url_for('.home') }}">Flights</a>
             </li>
-            <li class="nav-item{% if request.path == url_for('.live') %} active{% endif %}">
+            <li class="nav-item{% if menu_live %} active{% endif %}">
               <a class="nav-link" href="{{ url_for('.live') }}">Live Tracking</a>
             </li>
           </ul>
@@ -50,17 +50,6 @@
             </div>
           </div>
           <div class="card mb-3">
-            <div class="card-header">Live Tracking</div>
-            <div class="card-body">
-              <p class="card-text">
-                Live tracking of flights is available.
-              </p>
-              <p class="card-text">
-                <a href="{{ url_for('.live') }}">Click here for details</a>
-              </p>
-            </div>
-          </div>
-          <div class="card mb-3">
             <div class="card-header">Statistics</div>
             <div class="list-group list-group-flush">
               <div class="list-group-item list-group-item-action">Total Hours: {{ total_hours }}</div>
@@ -68,6 +57,17 @@
               <div class="list-group-item list-group-item-action">Average Landing Rate: {{ avg_landing_rate }} fpm</div>
             </div>
           </div>
+          {% if not menu_live %}
+          <div class="card mb-3">
+            <div class="card-header">Live Tracking</div>
+            <div class="list-group list-group-flush">
+              <a class="list-group-item list-group-item-action" href="{{ url_for('.live') }}">
+                <span id="card-online">ONLINE</span>
+                <span id="card-offline">OFFLINE</span>
+              </a>
+            </div>
+          </div>
+          {% endif %}
           <div class="card mb-3">
             <div class="card-header">Disclaimer</div>
             <div class="card-body">

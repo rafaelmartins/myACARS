@@ -291,3 +291,24 @@ function initialize_live() {
     refresh_live();
     window.setInterval(refresh_live, 15000);
 }
+
+
+function refresh_online() {
+    var online = $("#card-online"), offline = $("#card-offline");
+    $.getJSON('/live/json/', function(data) {
+        if (data.live) {
+            offline.hide();
+            online.show();
+        }
+        else {
+            online.hide();
+            offline.show();
+        }
+    });
+}
+
+
+function initialize_online() {
+    refresh_online();
+    window.setInterval(refresh_online, 15000);
+}
