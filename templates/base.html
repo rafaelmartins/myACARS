@@ -9,27 +9,23 @@
     <link rel="stylesheet" href="{{ url_for('.static', filename='bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('.static', filename='c3.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('.static', filename='ol.min.css') }}">
-    <link href="{{ url_for('.static', filename='custom.css') }}" rel="stylesheet">
-    <!--[if lt IE 9]>
-      <script src="{{ url_for('.static', filename='html5shiv.min.js') }}"></script>
-      <script src="{{ url_for('.static', filename='respond.min.js') }}"></script>
-    <![endif]-->
+    <link rel="stylesheet" href="{{ url_for('.static', filename='custom.css') }}">
   </head>
   <body{% block body_tag %}{% endblock %}>
-    <div class="navbar navbar-default navbar-fixed-top">
+    <div class="navbar navbar-expand-lg fixed-top navbar-light bg-light">
       <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="{{ url_for('.home') }}">{{ config.SITE_TITLE }}</a>
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-1">
-            <span class="sr-only">Toggle Navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-        </div>
-        <div class="collapse navbar-collapse" id="navbar-collapse-1">
-          <ul class="nav navbar-nav navbar-right">
-            <li><a href="{{ url_for('.live') }}">Live Tracking</a></li>
+        <a class="navbar-brand" href="{{ url_for('.home') }}">{{ config.SITE_TITLE }}</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+          <ul class="navbar-nav ml-auto">
+              <li class="nav-item{% if request.path == url_for('.home') %} active{% endif %}">
+              <a class="nav-link" href="{{ url_for('.home') }}">Flights</a>
+            </li>
+            <li class="nav-item{% if request.path == url_for('.live') %} active{% endif %}">
+              <a class="nav-link" href="{{ url_for('.live') }}">Live Tracking</a>
+            </li>
           </ul>
         </div>
       </div>
@@ -37,64 +33,49 @@
     <div class="container">
       <div class="row">
         <div class="col-md-9">
-          {% block body %}
-          {% endblock %}
+          {% block body %}{% endblock %}
         </div>
         <div class="col-md-3 sidebar">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <h4 class="panel-title">About</h4>
-            </div>
-            <div class="list-group">
-              <div class="list-group-item">
-                <p>
-                  This is a simple logbook for Flight Simulation.
-                </p>
-                <p>
-                  It is a web application that receives data collected
-                  by <a href="https://www.tfdidesign.com/smartCARS.php">smartCARS</a>, and
-                  works like a single-user Virtual Airline.
-                </p>
-              </div>
+          <div class="card mb-3">
+            <div class="card-header">About</div>
+            <div class="card-body">
+              <p class="card-text">
+                This is a simple logbook for Flight Simulation.
+              </p>
+              <p class="card-text">
+                It is a web application that receives data collected
+                by <a href="https://www.tfdidesign.com/smartCARS.php">smartCARS</a>, and
+                works like a single-user Virtual Airline.
+              </p>
             </div>
           </div>
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <h4 class="panel-title">Live Tracking</h4>
-            </div>
-            <div class="list-group">
-              <div class="list-group-item">
-                <p>
-                  Live tracking of flights is available.
-                </p>
-                <p>
-                  <a href="{{ url_for('.live') }}">Click here for details</a>
-                </p>
-              </div>
+          <div class="card mb-3">
+            <div class="card-header">Live Tracking</div>
+            <div class="card-body">
+              <p class="card-text">
+                Live tracking of flights is available.
+              </p>
+              <p class="card-text">
+                <a href="{{ url_for('.live') }}">Click here for details</a>
+              </p>
             </div>
           </div>
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <h4 class="panel-title">Statistics</h4>
-            </div>
-            <div class="list-group">
-              <div class="list-group-item">Total Hours: {{ total_hours }}</div>
-              <div class="list-group-item">Total Flights: {{ total_flights }}</div>
-              <div class="list-group-item">Average Landing Rate: {{ avg_landing_rate }} fpm</div>
+          <div class="card mb-3">
+            <div class="card-header">Statistics</div>
+            <div class="list-group list-group-flush">
+              <div class="list-group-item list-group-item-action">Total Hours: {{ total_hours }}</div>
+              <div class="list-group-item list-group-item-action">Total Flights: {{ total_flights }}</div>
+              <div class="list-group-item list-group-item-action">Average Landing Rate: {{ avg_landing_rate }} fpm</div>
             </div>
           </div>
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              <h4 class="panel-title">Disclaimer</h4>
-            </div>
-            <div class="list-group">
-              <div class="list-group-item">
-                <p>
-                  All the flight data displayed here is fictional, produced by flight
-                  simulators, even when the flight number is the same of a real life
-                  flight.
-                </p>
-              </div>
+          <div class="card mb-3">
+            <div class="card-header">Disclaimer</div>
+            <div class="card-body">
+              <p class="card-text">
+                All the flight data displayed here is fictional, produced by flight
+                simulators, even when the flight number is the same of a real life
+                flight.
+              </p>
             </div>
           </div>
         </div>
@@ -114,7 +95,7 @@
       </div>
     </div>
     <script src="{{ url_for('.static', filename='jquery.min.js') }}"></script>
-    <script src="{{ url_for('.static', filename='bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('.static', filename='bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('.static', filename='d3.min.js') }}"></script>
     <script src="{{ url_for('.static', filename='c3.min.js') }}"></script>
     <script src="{{ url_for('.static', filename='ol.min.js') }}"></script>
