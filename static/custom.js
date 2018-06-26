@@ -1,22 +1,3 @@
-$(function () {
-    // Media fluid width.
-    // based on http://css-tricks.com/fluid-width-youtube-videos/
-    var $container = $("article"),
-        $elements = $("article iframe, article img");
-    $elements.each(function() {
-        $(this).data('ratio', this.width / this.height)
-               .removeAttr('height')
-               .removeAttr('width');
-    });
-    $(window).resize(function() {
-        var container_width = $container.width();
-        $elements.each(function() {
-            $(this).width(container_width)
-                   .height(container_width / $(this).data('ratio'));
-        });
-    }).resize();
-});
-
 var plane_svg = "M 0,0 " +
     "M 1.9565564,41.694305 C 1.7174505,40.497708 1.6419973,38.448747 " +
     "1.8096508,37.70494 1.8936398,37.332056 2.0796653,36.88191 " +

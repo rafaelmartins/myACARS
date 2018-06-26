@@ -18,14 +18,6 @@ h5 {
     padding-top: 20px;
 }
 
-.jumbotron {
-    text-align: center;
-}
-
-.metadata {
-    margin-bottom: 40px;
-}
-
 #flight_data .c3-line-Altitude, #flight_data .c3-line-Ground-Speed {
     stroke-width: 2px;
 }
