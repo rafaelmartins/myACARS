@@ -1,4 +1,4 @@
 -r requirements.txt
-psycopg2-binary~=2.8.4
-setproctitle~=1.1.10
-gunicorn~=19.9
+psycopg2-binary~=2.8
+setproctitle~=1.1
+gunicorn~=20.0
